@@ -59,7 +59,15 @@ class Dev(Base):
         return f'<Dev {self.name}>'
     
     def received_one(self, item_name):
-        pass
+        engine = create_engine('sqlite:///freebies.db')
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        freebie = session.query(Freebie).filter(Freebie.dev_id == self.id).first()
+        if freebie.item_name == item_name:
+            return True
+        return False  
 
     def give_away(self, dev, freebie):
         pass
