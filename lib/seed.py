@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
 
 from random import choice as rc
-
+from faker import Faker
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from models import Dev, Company, Freebie
 
-engine = create_engine('sqlite:///seed_db.db')
+fake = Faker()
+
+engine = create_engine('sqlite:///freebies.db')
 Session = sessionmaker(bind=engine)
 session = Session()
+
+devs = [Dev(name = fake.name()) for i in range(500)]
+companies = [Company(name = fake.name(), founding_year = fake.random_int(1800, 2022)) for i in range(100)]
+freebies = [Freebie(item_name = fake.name(), value = fake.random_int(0, 500)) for i in range(1000)]
 
 def delete_records():
     session.query(Dev).delete()
     session.query(Company).delete()
     session.query(Freebie).delete()
+    # session.delete(Dev)
+    # session.delete(Company)
+    # session.delete(Freebie)
     session.commit()
 
 def create_records():
-    devs = [Dev() for i in range(500)]
-    companies = [Company() for i in range(100)]
-    freebies = [Freebie() for i in range(1000)]
     session.add_all(devs + companies + freebies)
     session.commit()
     return devs, companies, freebies
