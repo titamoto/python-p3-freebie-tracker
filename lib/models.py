@@ -1,7 +1,7 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, MetaData
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import ForeignKey, Column, Integer, String, MetaData, create_engine
+from sqlalchemy.orm import relationship, backref, sessionmaker 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.associationproxy import association_proxy 
+from sqlalchemy.ext.associationproxy import association_proxy
 
 convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -23,7 +23,26 @@ class Company(Base):
            creator=lambda dev: Freebie(dev=dev))
 
     def __repr__(self):
-        return f'<Company {self.name}>'
+        return f'Company {self.name}' + ', ' + f'{self.founding_year}'
+    
+    def give_freebie(self, dev, item_name, value):
+
+        freebie = Freebie(
+            item_name=item_name,
+            value=value,
+            dev_id=dev.id,
+            company_id=self.id)
+        
+        return freebie
+
+    @classmethod
+    def oldest_company(cls):
+        engine = create_engine('sqlite:///freebies.db')
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        return session.query(Company).order_by(Company.founding_year).first() 
 
 class Dev(Base):
     __tablename__ = 'devs'
@@ -39,6 +58,12 @@ class Dev(Base):
     def __repr__(self):
         return f'<Dev {self.name}>'
     
+    def received_one(self, item_name):
+        pass
+
+    def give_away(self, dev, freebie):
+        pass
+    
 class Freebie(Base):
     __tablename__ = 'freebies'
 
@@ -49,4 +74,14 @@ class Freebie(Base):
     company_id = Column(Integer(), ForeignKey('companies.id'))
 
     def __repr__(self):
-        return f'<Freebie {self.item_name}>'
+        return f'Freebie {self.id} ' + f'{self.item_name} ' + f'{self.value} ' + f'{self.dev_id} ' + f'{self.company_id} '
+
+    def print_details(self):
+        engine = create_engine('sqlite:///freebies.db')
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        dev = session.query(Dev).filter(Dev.id == self.dev_id).first()
+        company = session.query(Company).filter(Company.id == self.company_id).first()
+        print(f'{dev.name} owns a {self.item_name} from {company.name}')

@@ -21,9 +21,6 @@ def delete_records():
     session.query(Dev).delete()
     session.query(Company).delete()
     session.query(Freebie).delete()
-    # session.delete(Dev)
-    # session.delete(Company)
-    # session.delete(Freebie)
     session.commit()
 
 def create_records():
