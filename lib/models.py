@@ -70,7 +70,19 @@ class Dev(Base):
         return False  
 
     def give_away(self, dev, freebie):
-        pass
+        engine = create_engine('sqlite:///freebies.db')
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        devs_freebie = session.query(Freebie).filter(Freebie.dev_id == self.id).first()
+        if freebie == devs_freebie.item_name:
+            session.query(Freebie).filter(Freebie.dev_id == self.id).update({Freebie.dev_id : dev.id})
+            session.commit()
+            print("Success")
+        else:
+            print("Fail")
+        
     
 class Freebie(Base):
     __tablename__ = 'freebies'
